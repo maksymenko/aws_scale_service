@@ -77,9 +77,26 @@ sudo apt-get install -y docker-ce
 * Login to your docker account
 ```
 docker login
-export DOCKER_CONFIG=/home/ubuntu/.docker/
 ```
-* After that docker file with credentials will be created `~/.docker/config.json`.
+After that docker file with credentials will be stored in `~/.docker/config.json`.
+
+
+#### Add application start commands into  startup script
+```
+sudo vim /etc/rc.local
+```
+* Add  run commands  just befor `exit 0`
+```
+su - ubuntu
+export DOCKER_CONFIG=/home/ubuntu/.docker/
+export SAMPLE_APP_ENV=dev
+echo Sample app environment: $SAMPLE_APP_ENV
+export DOCKER_CONFIG=/home/ubuntu/.docker/
+docker pull maksymenko/sample_api:$SAMPLE_APP_ENV
+docker run -d --rm -p 8080:8080 $DOCKER_USER/sample_api:$SAMPLE_APP_ENV
+```
+
+
 Just left this file here so that all instances will have this file shen new instance created to scake uot application.
 
 ### Create AMI
@@ -97,17 +114,17 @@ Navigate to `Services > EC2 > Instances` select instance created above.
 * Select availability zone as subnet aattribute (e.g. zone a)
 * Left all other parameters with default values
 * Go to `Advanced Details` section and specify bash command which will be executes when instance created.
-Here we are going to specify docked image which will be launched om this instance
+Here we are going to specify custom bash commands tspecific for instance.
 ```
 #!/bin/bash
 
-su - ubuntu
-docker run -d --rm -p 8080:8080 $DOCKER_USER/sample_api:dev
 ```
 * Click `Next`
 * Choose `Security Group` as `sample-web-tire`
 * Click `Launch`
-* Use  log file to debug script behavir `/var/log/cloud-init-output.log`
+* Use  log file to debug script behavir 
+  * `/var/log/cloud-init-output.log`
+  * `/var/log/syslog`
 
 #### Check Api in browser
 * Find public DNS of created instance and point browser to port 8080
@@ -117,6 +134,7 @@ docker run -d --rm -p 8080:8080 $DOCKER_USER/sample_api:dev
 
 
 ### Reources
+* https://docs.oseems.com/general/operatingsystem/linux/automatically-run-program-on-startup
 * http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html
 * http://docs.aws.amazon.com/AmazonECS/latest/developerguide/private-auth.html
 * https://docs.docker.com/engine/reference/commandline/login/#login-to-a-self-hosted-registry
