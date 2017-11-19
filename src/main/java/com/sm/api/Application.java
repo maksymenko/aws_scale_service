@@ -1,5 +1,7 @@
 package com.sm.api;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.SpringApplication;
@@ -16,7 +18,7 @@ public class Application {
 
 
   @RequestMapping("/")
-  public String index() {
-    return "Hello version 1 " + id;
+  public String getVersion() {
+    return " Version: 'DEV' \r\n id: " + id + "\r\n current time: " + LocalDateTime.now();
   }
 }
