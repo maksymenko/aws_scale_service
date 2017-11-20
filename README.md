@@ -32,13 +32,16 @@ docker run --rm -p 8080:8080 $DOCKER_USER/sample_api:dev
 ```
 
 ## AWS setup 
-In order to address different load we want our solution be scalable. Server has to scale out when load is being increased. And scale in when load decreased and no need to pay for unused respurces.
+Here we will configure AWS to scale out server automaticaly when load is increassed and scale in when load in descresed.
+In order to achive it we will create instance image which will be used and base image to setup new instances. 
+Then  setup loadbalancer to balance traffic between all instances.
 
-### Create security group `services>EC2>Security Group`
-Create two groups one to controll loab balancer traffic and another to controll web tire traffic.
+### Create security groups `services>EC2>Security Group`
+Create two groups one to controll **load balancer** traffic and another to controll web tire traffic.
 * Create group for **Load Balancer**
   * Click `Create Security Group` and set name for load balancer group
   * `Add Rule` for inbound traffic
+  * `Add Rule` for **outbound** traffic
   * Click `Create`.
 * Create group for **Web Tire**
   * Click Click `Create Security Group` and set name for web-tire 
@@ -60,7 +63,8 @@ Navigate to `Services > EC2 > Instances` and click `Launch Instance`.
 * Click "Next" and add tag to mark this instance (e.g. 'sample-ami')
 * Click "Next" and choose sequrity group created earlier.
 * Click `Review and Launch`
-* Selecte creates earlier `key pair` and `Launch` instance
+* Select creates earlier `key pair` and `Launch` instance
+* Open instance and give name
 * ssh to created instance
 ```
 $ sudo ssh -i "./sample-key.pem" ubuntu@instance_public_dns
@@ -126,14 +130,40 @@ Here we are going to specify custom bash commands tspecific for instance.
   * `/var/log/cloud-init-output.log`
   * `/var/log/syslog`
 
-#### Check Api in browser
+### Check Api in browser
 * Find public DNS of created instance and point browser to port 8080
 `http://{instance_public_dns}:8080`
+
+
+### Setup Load balancer
+* Navigate to `Services > EC2 > Load Balancers` and click `Create Load Balancer`
+* Choose `Application Load Balancer` and click `Create`
+* Give name (e.g. sample-app-loadbalancer)
+* Set port 8080 for http as our application uses port 8080
+* Add `https` is recommended for production usage (here we can skip it)
+* Select availability zones, lets choose at least to zones `a` and zone `b` for system reliability.
+* Define tags to mark balancer.
+* Click `Next` and agail `Next` to choose `Security Group` created above.
+* Selected existing security group created to controll loadbalancer traffic.
+* Click `Next` to configure routing and set port 8080
+* Create `new target group` to which load balancer will send traffic.
+* Give name to group and click `Next` to `register targets` instances
+* Select instances and `add to registered` on port 8080
+* Click `Next` to review and `Create`
+
+
+### Setup Autoscaling
+* Open  section `Services > EC2 > AUTO SCALING > Launch Configurations` and click `Create Auto Scaling group`
+TODO: complete aoute scaling configuration step
 
 
 
 
 ### Reources
+* Load balancer Security group http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-groups.html#elb-vpc-security-groups
+* health check troubleshoot http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/ts-elb-healthcheck.html#ts-elb-healthcheck-failed-vpc
+* http://docs.aws.amazon.com/AmazonECS/latest/developerguide/create-application-load-balancer.html#alb-configure-routing 
+* https://aws.amazon.com/premiumsupport/knowledge-center/troubleshoot-unhealthy-checks-ecs/
 * https://docs.oseems.com/general/operatingsystem/linux/automatically-run-program-on-startup
 * http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html
 * http://docs.aws.amazon.com/AmazonECS/latest/developerguide/private-auth.html
