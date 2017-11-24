@@ -94,7 +94,6 @@ sudo vim /etc/rc.local
 su - ubuntu
 export DOCKER_CONFIG=/home/ubuntu/.docker/
 export SAMPLE_APP_ENV=dev
-echo Sample app environment: $SAMPLE_APP_ENV
 export DOCKER_CONFIG=/home/ubuntu/.docker/
 docker pull maksymenko/sample_api:$SAMPLE_APP_ENV
 docker run -d --rm -p 8080:8080 $DOCKER_USER/sample_api:$SAMPLE_APP_ENV
@@ -148,12 +147,37 @@ Here we are going to specify custom bash commands tspecific for instance.
 * Click `Next` to configure routing and set port 8080
 * Create `new target group` to which load balancer will send traffic.
 * Give name to group and click `Next` to `register targets` instances
-* Select instances and `add to registered` on port 8080
+* Select instances and `add to registered` on port 8080.
 * Click `Next` to review and `Create`
 
 
 ### Setup Autoscaling
-* Open  section `Services > EC2 > AUTO SCALING > Launch Configurations` and click `Create Auto Scaling group`
+In order to setup autoscaling we have to define two components "Launch Configuration" and "Autoscaling Group".
+
+#### Launch Configurations 
+
+* Open  section `Services > EC2 > AUTO SCALING > Launch Configurations` and click `Create Auto Scaling group` then `Create launch configuration`.
+* Choose base image. As we created earlier our preconfigured instance, click "My AMIs" and select image.
+* Select instance type and click "Next".
+* Give name to launch configuration e.g. "Sample web-app launch configuration".
+* Click "Next" then again "Next"
+* Select existing security group (created above for web application) and click `Review`.
+* Click `Create launch configuration` and choose key for ssh access.
+
+#### Create Auto Scaling Group
+* Give name for group
+* Select group size (put 2 to have one instance in two different availability zones)
+* Choose Subnet (availability zones) let choos `a` and `b` zones which were selected for load balancer.
+* Go to `Advanced Details` and select that group will select traffic from one or more load balancer.
+* Then select name of target group created for load balancer, and click `Next`
+* Define scaling policy (when and how to scale application), and click `Next`
+* Configure notification as needed and click `Next`
+* Add tegs to ad some metadate to created resource, and click `Review`.
+* Click `Create Autoscaling Group` for complete process and `Close` to come back to autoscaling home page.
+
+#### Removed unused instances
+As now we have aouto scaling group we can remove instances created earlier.
+
 TODO: complete aoute scaling configuration step
 
 
